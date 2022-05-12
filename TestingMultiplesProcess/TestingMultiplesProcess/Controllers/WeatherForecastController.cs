@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,7 +30,7 @@ namespace TestingMultiplesProcess.Controllers
         private List<string> Entities()
         {
             List<string> items = new List<string>();
-            for(int i = 0; i <= 5000; i++)
+            for(int i = 0; i <= 5; i++)
             {
                 items.Add($"Item {i}");
             }
@@ -41,13 +42,35 @@ namespace TestingMultiplesProcess.Controllers
             //A: Setup and stuff you don't want timed
             var timer = new Stopwatch();
             timer.Start();
+
+            //Paso #1
             await Task.Delay(5000);
+
+            //Paso #2
+            await Task.Delay(7000);
+
+            //Paso #3
+            await Task.Delay(3000);
+
             timer.Stop();
             TimeSpan timeTaken = timer.Elapsed;
             string foo = $"< {item} >Time taken: " + timeTaken.ToString(@"m\:ss\.fff");
             Console.WriteLine(foo);
         }
 
+        private async Task Process2(string item)
+        {
+            //A: Setup and stuff you don't want timed
+            var timer = new Stopwatch();
+            timer.Start();
+            var client = new RestClient("https://jsonplaceholder.typicode.com");
+            var request = new RestRequest("posts", Method.Get);
+            var timeline = await client.GetAsync<List<ResponseApiPlaceHolderDTO>>(request);
+            timer.Stop();
+            TimeSpan timeTaken = timer.Elapsed;
+            string foo = $"< {item} >Time taken: " + timeTaken.ToString(@"m\:ss\.fff");
+            Console.WriteLine(foo);
+        }
 
         [HttpGet]
         public async Task<IEnumerable<string>> Get()
@@ -89,7 +112,7 @@ namespace TestingMultiplesProcess.Controllers
             //});
 
             //Forma #2
-            var a = listOfList.Select(q => q.Select(i => Process(i))).SelectMany(q => q).ToList();
+            var a = listOfList.Select(q => q.Select(i => Process2(i))).SelectMany(q => q).ToList();
             await Task.WhenAll(a.ToArray());
 
             //foreach (var item in listOfList.Select((value, i) => new { i, value }))
