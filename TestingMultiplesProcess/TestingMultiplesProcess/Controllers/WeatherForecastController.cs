@@ -72,6 +72,38 @@ namespace TestingMultiplesProcess.Controllers
             Console.WriteLine(foo);
         }
 
+        private async Task TestPost()
+        {
+            var client = new RestClient("https://jsonplaceholder.typicode.com");
+            var request = new RestRequest("posts", Method.Post).AddJsonBody(
+                new
+                {
+                    id = 1,
+                    title = "foo",
+                    body = "bar",
+                    userId = 1
+                }
+            );
+            var response = await client.ExecutePostAsync<PostResponseDto>(request);
+        }
+
+        private async Task TestPut()
+        {
+            var client = new RestClient("https://jsonplaceholder.typicode.com");
+            var request = new RestRequest("posts/{id}", Method.Put)
+                .AddUrlSegment("id", "1")
+                .AddJsonBody(
+                new
+                {
+                    id = 1,
+                    title = "Testing Up",
+                    body = "Testing Up 2",
+                    userId = 1
+                }
+            );
+            var response = await client.ExecutePutAsync<PostResponseDto>(request);
+        }
+
         [HttpGet]
         public async Task<IEnumerable<string>> Get()
         {
@@ -89,6 +121,8 @@ namespace TestingMultiplesProcess.Controllers
 
 
             List<List<string>> listOfList = ListHelper.ChunkList<string>(items.AsEnumerable(), 300);
+
+            await TestPut();
 
 
             //#Forma #1
@@ -112,8 +146,8 @@ namespace TestingMultiplesProcess.Controllers
             //});
 
             //Forma #2
-            var a = listOfList.Select(q => q.Select(i => Process2(i))).SelectMany(q => q).ToList();
-            await Task.WhenAll(a.ToArray());
+            //var a = listOfList.Select(q => q.Select(i => Process2(i))).SelectMany(q => q).ToList();
+            //await Task.WhenAll(a.ToArray());
 
             //foreach (var item in listOfList.Select((value, i) => new { i, value }))
             //{
